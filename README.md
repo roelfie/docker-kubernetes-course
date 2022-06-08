@@ -4,6 +4,7 @@ My notes of the Udemy course '[Docker and Kubernetes: The Complete Guide](https:
 * [Reference documentation](https://docs.docker.com/reference/)
   * [Docker CLI](https://docs.docker.com/engine/reference/run/)
   * [Dockerfile](https://docs.docker.com/engine/reference/builder/) (assembling a Docker image)
+  * [Compose file](https://docs.docker.com/compose/compose-file/)
 * [Guides](https://docs.docker.com/get-started/overview/)
 * [Manuals](https://docs.docker.com/desktop/)
   * [Docker Desktop](https://docs.docker.com/desktop/)
@@ -314,11 +315,85 @@ the Dockerfile if the contents of the source folder have changed.
 In other words, a change in source files always trigger a re-build, even if the Dockerfile has not changed. More 
 info on [build cache best practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#leverage-build-cache).
 
+## 5. Docker Compose
+
+* [User manual](https://docs.docker.com/compose/)
+* [CLI reference](https://docs.docker.com/compose/reference/)
+
+Example of an application [composed of two docker containers](./src/docker/4_node_redis) (Node and Redis):
+* [custom](./src/docker/4_node_redis/Dockerfile) image based on [node:alpine](https://hub.docker.com/_/node?tab=tags&page=1&name=alpine)
+* [redis](https://hub.docker.com/_/redis)
 
 
-## 5. Docker Compose with Multiple Local Containers
+Building & running the two containers like this won't work:
+```shell
+docker build -t roelfie/4_node_redis .
+docker run -p 8080:8081 roelfie/4_node_redis
+docker run redis
+```
 
+For the two containers to be able to communicate we'll use docker-compose.
 
+The multi-container app is configured in [docker-compose.yml](./src/docker/4_node_redis/docker-compose.yml) (more info: 
+[reference docs](https://docs.docker.com/compose/compose-file/)):
+
+```shell
+version: '3'
+services:
+  redis-server:
+    image: 'redis'
+  node-app:
+    build: .
+    ports:
+      - "8080:8081"
+```
+
+Launching docker-compose:
+```shell
+docker-compose up [-d]
+docker-compose down
+```
+
+### docker-compose / docker compose
+
+`docker-compose` is now part of the `docker` CLI. Using `docker compose` is now recommended.
+
+| docker compose command                         | meaning                                                        |
+|------------------------------------------------|----------------------------------------------------------------|
+| `docker compose`                               | help                                                           |
+| `docker compose CMD --help`                    | help for CMD                                                   |
+|                                                |                                                                |
+| `docker compose build [--no-cache]`            | build services (= images) [do not use cache]                   |
+| `docker compose up [--build --force-recreate]` | build & start services [build images, recreate containers] (*) |
+| `docker compose up [-d / --detach]`            | detached (run in the background)                               |
+| `docker compose down`                          | stop & remove service containers (**)                          |
+|                                                |                                                                |
+| `docker compose ps`                            | list containers                                                |
+| `docker compose rm [--stop]`                   | remove stopped containers [stop running first]                 |
+| `docker compose images`                        | list images                                                    |
+| `docker image rm IMG`                          | remove an individual image                                     |
+|                                                |                                                                |
+| `docker compose start` / `restart`             |                                                                |
+| `docker compose stop` / `kill`                 |                                                                |
+
+(*) `--build` forces the service images to be rebuilt, but does not force bypassing the cache. If intermediate 
+images are cached, those cached images will be used. If you really want the service images to be re-build without 
+cache, you have to first run `docker compose build --no-cache` (`--force-recreate` applies to the containers, not 
+to images).
+
+(**) `docker compose down` should also remove images created by docker compose up. If it doesn't, you can always 
+clean up manually with `docker image rm <IMG>`.
+
+### restart policy 
+```dockerfile
+services:
+  service-name:
+    restart: "no" | always | on-failure | unless-stopped
+```
+
+During development, on local machine, you probably want a restart policy of `"no"` or `on-failure`.
+For web services deployed in the cloud in production, you probably want policy `always` (no matter what happens, 
+make sure the container is up and running).
 
 ## 6. Creating a Production Grade Workflow
 

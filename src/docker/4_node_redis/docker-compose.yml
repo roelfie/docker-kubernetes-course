@@ -1,0 +1,12 @@
+# https://docs.docker.com/compose/
+# https://docs.docker.com/compose/compose-file/
+# https://docs.docker.com/compose/reference/
+version: '3'
+services:
+  redis-server:
+    image: 'redis'
+  node-app:
+    restart: on-failure
+    build: .
+    ports:
+      - "8080:8081"
