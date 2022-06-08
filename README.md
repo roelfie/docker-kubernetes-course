@@ -397,7 +397,15 @@ make sure the container is up and running).
 
 ## 6. Creating a Production Grade Workflow
 
+We created a React web app called [frontend](./src/docker/6_react_frontend/frontend) with this command:
+```shell
+npx create-react-app frontend
+```
 
+We will use these commands in a CI/CD pipeline for the 'frontend' application:
+* npm run start
+* npm run test
+* npm run build
 
 ## 7. Continuous Integration & Deployment with AWS
 
