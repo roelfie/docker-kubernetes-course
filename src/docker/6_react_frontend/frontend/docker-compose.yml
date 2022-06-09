@@ -2,6 +2,7 @@ version: '3'
 
 services:
   react-app:
+    image: roelfie/6_react_app
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -10,3 +11,12 @@ services:
     volumes:
       - /app/node_modules
       - .:/app
+  tests:
+    image: roelfie/6_react_app_tests
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    command: ["npm", "run", "test"]

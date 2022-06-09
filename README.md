@@ -399,15 +399,19 @@ make sure the container is up and running).
 
 ## 6. Creating a Production Grade Workflow
 
-We created a React web app called [frontend](./src/docker/6_react_frontend/frontend) with this command:
+Create a React web app called [frontend](./src/docker/6_react_frontend/frontend):
 ```shell
 npx create-react-app frontend
 ```
 
 We will use these commands in a CI/CD pipeline for the 'frontend' application:
-* npm run start
-* npm run test
-* npm run build
+
+| phase | command         |                                           |
+|-------|-----------------|-------------------------------------------|
+| dev   | `npm run start` | start dev http server & run app           |
+| test  | `npm run test`  | start dev http server, run app & test app |
+| prod  | `npm run build` | compile application into /build folder    |
+
 
 We can build a 'dev' image based on [Dockerfile.dev](./src/docker/6_react_frontend/frontend/Dockerfile.dev):
 ```shell
@@ -427,9 +431,7 @@ grow. Using volumes also performs better.
 
 Create image:
 ```shell
-$ docker build -f Dockerfile.dev .
-#914024d9824b
-3913f9e8b33f
+$ docker build -f Dockerfile.dev -t roelfie/6_react_app .
 ```
 
 Volumes are specified using the [-v or --volume](https://docs.docker.com/storage/volumes/#choose-the--v-or---mount-flag) flag.
@@ -457,10 +459,77 @@ from the volume (i.e. look at the container's filesystem):
 
 So you can mix anonymous volumes into named volumes!
 
-#### Running NodeJS Container in 'dev mode'
+### Running Container in DEV mode
 
 ```shell
-docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules 3913f9e8b33f
+docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules roelfie/6_react_app
+```
+
+Simplified startup by putting this in a [docker-compose.yml](./src/docker/6_react_frontend/frontend/docker-compose.yml).
+
+### Running Container in TEST mode (on workstation)
+
+The tests of our React app are started with `npm run test`. We can start the container and override the default 
+command with it.
+
+When we start like this ...
+```shell
+$ docker run -it roelfie/6_react_app npm run test
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.657 s
+Ran all test suites.
+
+Watch Usage
+ › Press q to quit watch mode.
+ › Press p to filter by a filename regex pattern.
+ › Press t to filter by a test name regex pattern.
+ › Press Enter to trigger a test run.
+```
+
+... changes to test code will not be automatically detected (and trigger a re-run) like in
+DEV mode.
+
+We could re-use a running container in DEV mode (with id 'abc123456cba') to get 'hot deploy' ...
+```shell
+docker exec -it abc123456cba  npm run test
+```
+
+... but that relies on a random container id, and we no longer have access to the STDIN of the test container.
+
+Instead, let's create a 2nd service in [docker-compose](./src/docker/6_react_frontend/frontend/docker-compose.yml) 
+that we can simply spin up with `docker-compose up` (this will spin up 2 containers; 1 for dev, 1 for test).
+
+But with this solution we're not able to attach STDIN to the running test container. So this is not really usable 
+for running tests on a development machine.
+
+Trying to attach to the container with `docker attach` also won't work because it attaches only to the STDIN of the 
+primary process of the container, and the test output shown above comes from a sub process.
+
+### Run Container in PROD mode
+
+Difference between PROD and DEV containers:
+* In PROD we'll use [nginx](https://hub.docker.com/_/nginx) instead of a built-in http server (like WebPack).
+* In PROD we don't need source files and [node_modules]. Only the stuff in the `./build` output folder.
+
+We can achieve this using a [multi-phase Buildfile](./src/docker/6_react_frontend/frontend/Dockerfile).
+
+```dockerfile
+FROM node:18.3.0-alpine as builder
+# setup ...
+RUN npm run build
+
+FROM nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+```
+
+The result of this Buildfile is an nginx image.
+
+```shell
+docker build -t roelfie/6_react_nginx .
+docker run -p 8080:80 roelfie/6_react_nginx
 ```
 
 ## 7. Continuous Integration & Deployment with AWS
