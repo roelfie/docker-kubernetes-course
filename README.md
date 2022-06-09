@@ -6,6 +6,8 @@ My notes of the Udemy course '[Docker and Kubernetes: The Complete Guide](https:
   * [Dockerfile](https://docs.docker.com/engine/reference/builder/) (assembling a Docker image)
   * [Compose file](https://docs.docker.com/compose/compose-file/)
 * [Guides](https://docs.docker.com/get-started/overview/)
+  * [Run Your App in Production](https://docs.docker.com/get-started/orchestration/)
+  * [Volumes](https://docs.docker.com/storage/volumes/)
 * [Manuals](https://docs.docker.com/desktop/)
   * [Docker Desktop](https://docs.docker.com/desktop/)
   * [Docker Engine](https://docs.docker.com/engine/)
@@ -406,6 +408,58 @@ We will use these commands in a CI/CD pipeline for the 'frontend' application:
 * npm run start
 * npm run test
 * npm run build
+
+We can build a 'dev' image based on [Dockerfile.dev](./src/docker/6_react_frontend/frontend/Dockerfile.dev):
+```shell
+docker build -f Dockerfile.dev .
+docker run -p 3000:3000 914024d9824b
+```
+
+### [Volumes](https://docs.docker.com/storage/volumes/)
+
+are like references from a container to storage on a remote host or cloud provider. 
+
+During development they allow for 'hot deploy' (don't copy application files into container, instead make a 
+reference from the container to the workspace on localhost).
+
+In production, persisting data in a container's writable layer is discouraged, because that makes the container size 
+grow. Using volumes also performs better. 
+
+Create image:
+```shell
+$ docker build -f Dockerfile.dev .
+#914024d9824b
+3913f9e8b33f
+```
+
+Volumes are specified using the [-v or --volume](https://docs.docker.com/storage/volumes/#choose-the--v-or---mount-flag) flag.
+The flag consists of three fields, separated by colon characters (:). 
+* Field #1: Volume name. Unique on host machine. Omitted for anonymous volumes. OPTIONAL.
+* Field #2: Path where the file or directory are mounted in the container.
+* Field #3: comma-separated list of options (such as ro). OPTIONAL.
+
+#### Named vs. Anonymous Volumes
+
+| volume type | meaning                                           | specify                       |
+|-------------|---------------------------------------------------|-------------------------------|
+| named       | have a specific source from outside the container | `-v host_path:container_path` |
+| anonymous   | have no specific source                           | `-v container_path`           |
+
+For example, `-v ${pwd}:/data` will mount the `/data` directory in the container to the `$pwd` on the host machine.
+
+An anonymous volume can also be used to specify that a specific subdirectory of a named volume should be _excluded_ 
+from the volume (i.e. look at the container's filesystem):
+
+```dockerfile
+-v $(pwd):/app
+-v /app/node_modules
+```
+
+#### Running NodeJS Container in 'development mode'
+
+```shell
+docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules 3913f9e8b33f
+```
 
 ## 7. Continuous Integration & Deployment with AWS
 
