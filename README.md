@@ -534,7 +534,13 @@ docker run -p 8080:80 roelfie/6_react_nginx
 
 ## 7. Continuous Integration & Deployment with AWS
 
+Let's build a CI/CD pipeline with 
+* GitHub
+* [Travis CI](https://www.travis-ci.com/)
+* AWS
 
+This builds on the React 'frontend' app from the previous section, but was implemented in the 
+[travis-ci-cd](https://github.com/roelfie/docker-kubernetes-travis-ci-cd) repository.
 
 ## 8. Building a Multi-Container Application
 
