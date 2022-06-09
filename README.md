@@ -455,7 +455,9 @@ from the volume (i.e. look at the container's filesystem):
 -v /app/node_modules
 ```
 
-#### Running NodeJS Container in 'development mode'
+So you can mix anonymous volumes into named volumes!
+
+#### Running NodeJS Container in 'dev mode'
 
 ```shell
 docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules 3913f9e8b33f
