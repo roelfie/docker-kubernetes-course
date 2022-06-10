@@ -544,6 +544,37 @@ This builds on the React 'frontend' app from the previous section, but was imple
 
 ## 8. Building a Multi-Container Application
 
+We're gonna Dockerize an application that consists of the following 6 components:
+
+![architecture](./img/8-fibonacci-app-architecture.png)
+
+The user van enter a number N, and the application will calculate the N'th Fibonacci number: 
+
+![architecture-2](./img/8-fibonacci-app-architecture-2.png)
+
+### Overview
+
+The application uses the following Docker images:
+* Standard:
+  * nginx
+  * redis
+  * postgres
+* Custom (all NodeJs applications):
+  * React app
+  * Express server
+  * Worker (does the actual Fibonacci calculation)
+
+### Nodemon
+
+The Server and Worker app have a dependency on `nodemon`. Nodemon is used to automatically restart the application in 
+case it detects a change in the source code (which we make available on a Docker Volume, as earlier). 
+
+### Dockerfiles
+
+Since all custom images are based on NodeJs, their Dockerfiles are very similar.
+
+
+
 
 
 ## 9. Dockerizing Multiple Services
