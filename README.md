@@ -573,21 +573,18 @@ case it detects a change in the source code (which we make available on a Docker
 
 Since all custom images are based on NodeJs, their Dockerfiles are very similar.
 
-
-
-
-
 ## 9. Dockerizing Multiple Services
 
-
+...
 
 ## 10. A Continuous Integration Workflow for Multiple Images
 
-
+...
 
 ## 11. Multi-Container Deployments to AWS
 
-
+The end result of sections 8-11 is a Travis CI/CD pipeline for AWS deployment, based on the
+[docker-kubernetes-travis-multicontainer](https://github.com/roelfie/docker-kubernetes-travis-multicontainer) repo.
 
 ## 12. Onwards to Kubernetes
 
