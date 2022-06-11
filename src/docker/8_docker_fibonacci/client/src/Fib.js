@@ -45,10 +45,12 @@ class Fib extends Component {
     }
 
     renderIndexes() {
+        console.log("rendering indexes")
         return this.state.seenIndexes.map(({number}) => number).join(',')
     }
 
     renderValues() {
+        console.log("rendering values")
         const entries = [];
         for (let key in this.state.values) {
             entries.push(
@@ -57,6 +59,7 @@ class Fib extends Component {
                 </div>
             );
         }
+        return entries;
     }
 
     handleSubmit = async (event) => {

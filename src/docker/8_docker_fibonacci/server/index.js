@@ -64,3 +64,6 @@ app.post('/values', async (req, res) => {
     res.send({accepted: true}); // tell client that Fibonacci number was accepted (but not yet calculated).
 })
 
+app.listen(5000, err => {
+   console.log("Client listening on port 5000")
+});

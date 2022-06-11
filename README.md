@@ -548,7 +548,7 @@ We're gonna Dockerize an application that consists of the following 6 components
 
 ![architecture](./img/8-fibonacci-app-architecture.png)
 
-The user van enter a number N, and the application will calculate the N'th Fibonacci number: 
+The user can enter a number N, and the application will calculate the N'th Fibonacci number: 
 
 ![architecture-2](./img/8-fibonacci-app-architecture-2.png)
 
