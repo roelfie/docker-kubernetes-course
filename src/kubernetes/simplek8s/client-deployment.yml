@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+spec:
+  # Replicas defines how many (identical) Pods should be created.
+  replicas: 1
+  selector:
+    matchLabels:
+      component: web
+  template:
+    # Defines what every single Pod, created by this deployment, should look like.
+    metadata:
+      labels:
+        component: web
+    spec:
+      containers:
+        - name: client
+          image: roelfie/fibonacci-client
+          ports:
+            - containerPort: 3000

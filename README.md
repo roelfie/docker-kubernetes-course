@@ -689,6 +689,8 @@ and use above token.
 
 Recall that 'kind' and 'name' uniquely identify a Pod (or any Kubernetes Object).
 
+### Replace container in Pod 
+
 We can replace one image with another in a Pod, by changing the Pod's config file and re-applying it:
 ```shell
 spec:
@@ -706,6 +708,117 @@ Check what container(s) are inside a Pod:
 kubectl get pods
 kubectl describe pod [pod-name]
 ```
+
+### Change container port in existing Pod
+
+You can not simply change the containerPort in an existing Pod's container:
+```shell
+spec:
+  containers:
+    - name: client
+      image: stephengrider/multi-worker
+      ports:
+        - containerPort: 3001   <---   CHANGE PORT
+```
+Apply:
+```shell
+$ kubectl apply -f client-pod.yml
+
+The Pod "client-pod" is invalid: spec: Forbidden: pod updates may not change fields other than `spec.containers[*].image`, `spec.initContainers[*].image`, `spec.activeDeadlineSeconds`, `spec.tolerations` (only additions to existing tolerations) or `spec.terminationGracePeriodSeconds` (allow it to be set to 1 if it was previously negative)
+```
+
+We're only allowed to update the following Pod fields:
+* `spec.containers[*].image`
+* `spec.initContainers[*].image`
+* `spec.activeDeadlineSeconds`
+* `spec.tolerations`
+* `spec.terminationGracePeriodSeconds`
+
+### Deployments vs Pods
+
+* [Workload resources](https://kubernetes.io/docs/concepts/workloads/controllers/)
+  * [Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) provide declarative updates 
+    to Pods and ReplicaSets
+    * [Pods](https://kubernetes.io/docs/concepts/workloads/pods/): Smallest deployable unit that can be created and 
+      managed in Kubernetes
+    * [ReplicaSets](https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/): maintain a stable set of 
+      replica Pods running at any given time
+
+| Pod                                  | Deployment                     |
+|--------------------------------------|--------------------------------|
+| Runs single set of containers        | Runs set of identical pods     |
+| Good for one-off dev purposes        | Monitors the state of each pod |
+| Rarely used *directly* in production | Updates pods as necessary      |
+|                                      | Good for dev & production      |
+
+If a Deployment can't update one of its Pods (like in the example above, where a containerPort needed 
+to be updated), then it will create a new Pod and remove the old Pod.
+
+Our first [client-deployment.yml](./src/kubernetes/simplek8s/client-deployment.yml).
+
+```shell
+kubectl apply -f client-deployment.yml
+```
+
+### Deleting Pods
+
+```shell
+kubectl help
+kubectl delete --help
+kubectl get pods
+kubectl delete pod client-pod
+```
+
+or 
+
+```shell
+kubectl delete -f <config-file>
+```
+
+### Watching a deployment rollout
+
+In separate terminals do:
+```shell
+kubectl get pods --output wide --watch
+kubectl get deployments --output wide --watch
+```
+
+Then execute your deployment changes and `--watch` your deployment changes effectuate:
+```shell
+kubectl apply -f client-deployment.yml
+```
+
+Watch the logs of a specific Pod (`-f` = stream):
+```shell
+kubectl logs [-f] <pod-name>
+```
+
+### How to detect & rollout new image versions on Docker Hub
+
+If we have a Kubernetes cluster running a container of version 'latest'.
+And we push a new version of the same tag 'latest' to Docker Hub.
+Then we need a way to roll out that new 'latest' version of the image to Kubernetes.
+
+Challenges around automatic detection by Kubernetes of a newly pushed 'latest' version of a Docker image:
+* [GitHub issue 33664](https://github.com/kubernetes/kubernetes/issues/33664)
+
+In general, if the deployment yaml hasn't changed, kubectl will reject it. So simply posting a deployment yaml to 
+kubectl, only to roll out the newest image from Docker Hub, will not work.
+
+#### Rollout newest image version
+
+Where possible, we would like to make changes to our Kubernetes cluster through declarative yaml files, but to update
+an already deployed container version (from 'latest' to 'latest') is not easily achieved in a declarative manner.
+
+The course offers an imperative solution for images with a new version numbers (e.g. v4 -> v5):
+```shell
+docker build -t roelfie/fibonacci-client:v2 .
+docker push roelfie/fibonacci-client:v2
+
+kubectl set image deployment/client-deployment client=roelfie/fibonacci-client:v2
+```
+
+
 
 
 
