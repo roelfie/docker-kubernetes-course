@@ -687,6 +687,26 @@ and use above token.
 
 ## 13. Maintaining Sets of Containers with Deployments
 
+Recall that 'kind' and 'name' uniquely identify a Pod (or any Kubernetes Object).
+
+We can replace one image with another in a Pod, by changing the Pod's config file and re-applying it:
+```shell
+spec:
+  containers:
+    - name: client
+      image: stephengrider/multi-worker   <---   REPLACE IMAGE NAME HERE
+```
+
+```shell
+kubectl apply -f client-pod.yml
+```
+
+Check what container(s) are inside a Pod:
+```shell
+kubectl get pods
+kubectl describe pod [pod-name]
+```
+
 
 
 ## 14. A Multi-Container App with Kubernetes
