@@ -588,6 +588,101 @@ The end result of sections 8-11 is a Travis CI/CD pipeline for AWS deployment, b
 
 ## 12. Onwards to Kubernetes
 
+[What is Kubernetes?](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/)
+
+### Kubernetes implementations
+
+* [kubernetes](https://kubernetes.io/) ([download](https://kubernetes.io/releases/download/))
+* [minikube](https://minikube.sigs.k8s.io/) good for testing locally ([github](https://github.com/kubernetes/minikube))
+* [k3s](https://k3s.io/) lightweight (IoT & Edge computing)
+* Managed solutions:
+  * [AWS EKS](https://aws.amazon.com/eks/) (Elastic Kubernetes Service)
+  * [GKE](https://cloud.google.com/kubernetes-engine) (Google Kubernetes Engine)
+
+### Kubernetes on localhost
+
+Install & run Kubernetes from __Docker Desktop__:
+1. Open Docker Desktop Preferences
+2. Open tab 'Kubernetes'
+3. Check 'Enable Kubernetes' (v1.24.0)
+
+The Docker Desktop menu (right top screen) should say "Kubernetes is running", and under the 'Kubernetes' submenu 
+should say context 'docker-desktop'.
+
+(Minikube is an alternative for Docker Desktop Kubernetes. It is harder to get up and running (requires manual 
+installation of kubectl and virtualbox)).
+
+### Kubernetes Components
+[Kubernetes Component](https://kubernetes.io/docs/concepts/overview/components/)
+
+[Kubernetes Objects](https://kubernetes.io/docs/concepts/overview/working-with-objects/) are referred to as 'kind' in 
+the config files.
+
+Object types:
+* [Pod](https://kubernetes.io/docs/concepts/workloads/pods/)
+* [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+  * [ClusterIP](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
+  * [NodePort](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport)
+    * expose container to outside world (only for dev purposes?)
+  * [LoadBalancer](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
+  * Ingress
+* StatefulSet
+* ReplicaController
+* ...
+
+### Deploying a single container into Kubernetes
+
+* Docker image should be available on Docker Hub. We use 'stephengrider/multi-client'.
+* [client-pod.yml](./src/kubernetes/simplek8s/client-pod.yml)
+  * Defines the Pod (=smallest deployable unit) containing our container.
+* [client-node-port.yml](./src/kubernetes/simplek8s/client-node-port.yml)
+  * Defines a Service of type NodePort, used to expose the container inside the Pod to the outside world.
+* Execute scripts with 'kubectl'
+
+```shell
+kubectl apply -f client-pod.yml
+kubectl apply -f client-node-port.yml
+kubectl get pods
+kubectl get services
+```
+
+---
+**NOTE**
+
+The combination of 'kind' & 'name' uniquely identifies an object in Kubernetes.
+
+For example, in our config file that defined our Pod:
+```
+kind: Pod
+metadata:
+  name: client-pod
+```
+
+---
+
+#### Installing the Dashboard
+
+[Dashboard](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
+
+```shell
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
+kubectl proxy
+```
+
+[Create a Sample User](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md)
+
+```shell
+kubectl apply -f dashboard-adminuser.yaml
+kubectl apply -f dashboard-clusterrolebinding.yml
+```
+
+Generate an access token (short-lived!)
+```shell
+kubectl -n kubernetes-dashboard create token admin-user
+```
+
+Go to [localhost:8001](http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/) 
+and use above token.
 
 
 ## 13. Maintaining Sets of Containers with Deployments
