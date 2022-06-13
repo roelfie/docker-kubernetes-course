@@ -775,6 +775,17 @@ or
 kubectl delete -f <config-file>
 ```
 
+#### Controllers
+
+In robotics and automation, a __control loop__ is a non-terminating loop that regulates the state of a system.
+In Kubernetes, [controllers](https://kubernetes.io/docs/concepts/architecture/controller/) are control loops that watch 
+the state of your cluster, then make or request changes where needed. Each controller tries to move the current 
+cluster state closer to the desired state.
+
+* A _Deployment_ is a description of the desired state of a set of Pods and ReplicaSets (the *.yml)
+* A _Deployment Controller_ watches your Pods and ReplicaSets, and changes the actual state to the desired state at a 
+  controlled rate.
+
 ### Watching a deployment rollout
 
 In separate terminals do:
@@ -941,6 +952,79 @@ workstation.
 
 ## 15. Handling Traffic with Ingress Controllers
 
+[Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) is an API that provides load balancing, 
+SSL termination and name-based virtual hosting.
+
+An Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster.
+
+An [Ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) is responsible 
+for fulfilling the Ingress, usually with a load balancer, though it may also configure your edge router or additional 
+frontends to help handle the traffic. 
+
+_NB: Very much like a Deployment Controller is responsible for keeping your Pods and ReplicaSets in the desired 
+state (described in a Deployment *.yml), an Ingress Controller is responsible for keeping your Ingress in the 
+desired state (described in the ingress *.yml)._
+
+![15-ingress-controller.png](./img/15-ingress-controller.png)
+
+The most common ingress controllers:
+* [AWS](https://github.com/kubernetes-sigs/aws-load-balancer-controller#readme)
+* [GCE](https://github.com/kubernetes/ingress-gce/blob/master/README.md#readme)
+* [ingress-nginx](https://github.com/kubernetes/ingress-nginx/blob/main/README.md#readme) (supported by Kubernetes project)
+* [kubernetes-ingress](https://github.com/nginxinc/kubernetes-ingress/blob/main/README.md) (maintained by nginx)
+
+### ingress-nginx
+
+We will be deploying [ingress-nginx](https://github.com/kubernetes/ingress-nginx/blob/main/README.md#readme).
+* [installation guide](https://kubernetes.github.io/ingress-nginx/deploy/)
+* [blog post](https://www.joyfulbikeshedding.com/blog/2018-03-26-studying-the-kubernetes-ingress-system.html)
+
+The 'ingress-nginx' is an ingress controller and load balancer in one. So it implements the controller part and the 
+actual service that accepts and distributes incoming traffic. 
+
+#### installation
+
+##### Step 1: [Deploy Ingress Controller with Helm](https://kubernetes.github.io/ingress-nginx/deploy/#quick-start)
+
+Install `helm` (Kubernetes package manager): `brew install helm`.
+
+Install ingress-nginx:
+```shell
+helm upgrade --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+```
+
+##### Step 2: Create ingress yaml
+
+See [ingress-service.yml](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/k8s/client-deployment.yml)
+for example.
+
+##### Step 3: Rollout ingress yaml
+ 
+```shell
+kubectl apply -f <FOLDER>
+kubectl get ingress
+------------------------------------------------------------
+NAME              CLASS    HOSTS   ADDRESS     PORTS   AGE
+ingress-service   <none>   *       localhost   80      9m6s
+```
+
+The ingress load balancer listens on ports 80 and 443 by default.
+So you can now access your web app at http://localhost.
+
+
+#### ingress-nginx on Google Cloud
+
+![15-ingress-nginx-on-google-cloud.png](./img/15-ingress-nginx-on-google-cloud.png)
+
+When [deploying ingress-nginx into Google Cloud (GCE)](https://kubernetes.github.io/ingress-nginx/deploy/#gce-gke), 
+a Google Cloud Load Balancer and a (Kubernetes) Load Balancer Service is created behind the scenes.
+See [deploy.yaml](https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml).
+
+
+The _default-backend_ pod is used for health checking your node (in production you would replace it with your own API 
+that does the appropriate health checks).
 
 
 ## 16. Kubernetes Production Deployment
