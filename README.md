@@ -818,13 +818,23 @@ docker push roelfie/fibonacci-client:v2
 kubectl set image deployment/client-deployment client=roelfie/fibonacci-client:v2
 ```
 
-
-
-
-
 ## 14. A Multi-Container App with Kubernetes
 
+This diagram shows how we will deploy our (multi-container) Fibonacci application on a Kubernetes Node:
 
+![Kubernetes deployment](./img/14-fibonacci-deployment-kubernetes.png)
+
+_NB: Our images are called fibonacci-client, fibonacci-worker (etc. instead of 'multi-client', ..)_
+
+New concepts that we will introduce in this section:
+* Ingress Services
+* ClusterIP Services
+* Postgres PVC (Persistent Volume Claim)
+
+For Redis and Postgres we're gonna make use of managed AWS services (instead of building & deploying images ourselves).
+
+The deployment is configured in another repo: 
+[docker-kubernetes-travis-kubernetes](https://github.com/roelfie/docker-kubernetes-travis-kubernetes).
 
 ## 15. Handling Traffic with Ingress Controllers
 
