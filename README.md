@@ -894,6 +894,18 @@ Kubernetes supports the following
 Persistent Volumes can be provisioned 
 [statically or dynamically](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#lifecycle-of-a-volume-and-claim).
 
+To check what Persistent Volumes Kubernetes has available on your machine, do
+```shell
+kubectl get storageclass
+kubectl describe storageclass
+```
+
+List all existing persistent volumes / persistent volume claims:
+```shell
+kubectl get pv
+kubectl get pvc
+```
+
 ### Kubernetes plugin for IntelliJ by Jetbrains
 
 * Install the Kubernetes plugin for IntelliJ (the one by Jetbrains)
@@ -901,6 +913,17 @@ Persistent Volumes can be provisioned
 * Or simply `⌘ 8`
 
 ![Kubernetes plugin for IDEA](./img/kubernetes-plugin-for-idea.png)
+
+The context menu on, for instance, a Pod, offers a wealth of features:
+* Describe resource
+* Delete resource
+* Download or follow log
+* Open console
+* Port forwarding
+* ...
+
+You will not need anything more than this Kubernetes plugin when working with Kubernetes on your development 
+workstation.
 
 ## 15. Handling Traffic with Ingress Controllers
 
