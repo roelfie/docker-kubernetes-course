@@ -894,6 +894,13 @@ Kubernetes supports the following
 Persistent Volumes can be provisioned 
 [statically or dynamically](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#lifecycle-of-a-volume-and-claim).
 
+### Kubernetes plugin for IntelliJ by Jetbrains
+
+* Install the Kubernetes plugin for IntelliJ (the one by Jetbrains)
+* Open `View > Tool Windows > Services`
+* Or simply `⌘ 8`
+
+![Kubernetes plugin for IDEA](./img/kubernetes-plugin-for-idea.png)
 
 ## 15. Handling Traffic with Ingress Controllers
 
