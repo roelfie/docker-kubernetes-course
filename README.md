@@ -906,6 +906,20 @@ kubectl get pv
 kubectl get pvc
 ```
 
+### Secrets
+
+A [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) is a Kubernetes Object type that stores secret 
+data (pwd, token, ..).
+
+They are similar to [configMap](https://kubernetes.io/docs/concepts/configuration/configmap/)s.
+
+There are [different ways to create/update secrets](https://kubernetes.io/docs/concepts/configuration/configmap/). 
+For instance via the command line:
+```shell
+kubectl create secret generic pgpassword --from-literal PGPASSWORD=Postgres123
+kubectl get secrets
+```
+
 ### Kubernetes plugin for IntelliJ by Jetbrains
 
 * Install the Kubernetes plugin for IntelliJ (the one by Jetbrains)
