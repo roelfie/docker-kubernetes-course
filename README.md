@@ -827,14 +827,73 @@ This diagram shows how we will deploy our (multi-container) Fibonacci applicatio
 _NB: Our images are called fibonacci-client, fibonacci-worker (etc. instead of 'multi-client', ..)_
 
 New concepts that we will introduce in this section:
-* Ingress Services
-* ClusterIP Services
-* Postgres PVC (Persistent Volume Claim)
+* [ClusterIP Services](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
+  * Exposes the Service on a cluster-internal IP. Choosing this value makes the Service only reachable from within the 
+    cluster. This is the default ServiceType.
+* [Ingress Services](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+  * TODO
+* Postgres [PVC (Persistent Volume Claim)](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+  * See below for more info on [Kubernetes volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
+
+_NB: When creating a NodePort service (as opposed to ClusterIP), Kubernetes always automatically creates a ClusterIP 
+Service, to which the NodePort Service routes. So a NodePort seems to sit 'in front of' a ClusterIP service(?). Recall:_
+```shell
+spec:
+  type: NodePort
+  ports:
+    - port: 3050   <---   ClusterIP port for use within K8s node (???)
+      targetPort: 3000   <---   container port
+      nodePort: 31515   <---   port for outside world
+```
+???
+
+---
 
 For Redis and Postgres we're gonna make use of managed AWS services (instead of building & deploying images ourselves).
 
 The deployment is configured in another repo: 
 [docker-kubernetes-travis-kubernetes](https://github.com/roelfie/docker-kubernetes-travis-kubernetes).
+
+### Kubernetes Volumes 
+
+#### Intro
+
+On-disk files in a container are ephemeral (lost when container crashes). Another problem with storage inside a 
+container is that we can't easily share data with other containers.
+
+Recall that a Docker volume is a directory on disk or in another container. The functionality is limited.
+
+#### [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
+
+A Kubernetes Volume is an Object that allows a container to store data at the Pod-level.
+
+Kubernetes supports many types of volumes. They can be grouped into _ephemeral_ vs. _persistent_ volumes:
+* Ephemeral volumes: Lifetime of a Pod
+* Persistent volumes: data preserved across container restarts
+
+Examples of [volume types](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types):
+* configMap
+  * used to inject config data into Pods
+* emptyDir
+* local
+* nfs
+* persistentVolumeClaim
+  * mounts a [Persistent Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) into a Pod
+* ...
+
+#### Persistent Volumes (PV)
+
+Kubernetes supports the following 
+[Persistent Volume Types](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes):
+* awsElasticBlockStore
+* azureFile
+* local
+* nfs
+* ...
+
+Persistent Volumes can be provisioned 
+[statically or dynamically](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#lifecycle-of-a-volume-and-claim).
+
 
 ## 15. Handling Traffic with Ingress Controllers
 
