@@ -1022,14 +1022,67 @@ When [deploying ingress-nginx into Google Cloud (GCE)](https://kubernetes.github
 a Google Cloud Load Balancer and a (Kubernetes) Load Balancer Service is created behind the scenes.
 See [deploy.yaml](https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml).
 
-
 The _default-backend_ pod is used for health checking your node (in production you would replace it with your own API 
 that does the appropriate health checks).
 
 
-## 16. Kubernetes Production Deployment
+## 16. Kubernetes Production Deployment to Google Cloud
 
+### Google Kubernetes Engine (GKE)
 
+[GKE documentation](https://cloud.google.com/kubernetes-engine/docs)
+
+### Deployment pipeline to GKE
+
+#### Step 1: Create GitHub repo
+
+[docker-kubernetes-travis-kubernetes](https://github.com/roelfie/docker-kubernetes-travis-kubernetes)
+
+#### Step 2: Add GitHub repo to Travis CI
+
+* GitHub > Settings > Applications > Travis CI > Configure > Select repo
+* [Travis CI: docker-kubernetes-travis-kubernetes](https://app.travis-ci.com/github/roelfie/docker-kubernetes-travis-kubernetes)
+
+#### Step 3: Create GKE cluster
+
+* GCP project: udemy-kubernetes
+* GKE cluster: fibonacci-cluster
+
+#### Step 4: Create [.travis.yml](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/.travis.yml)
+
+* install [Google Cloud SDK](https://cloud.google.com/sdk)
+* authenticate with Google Cloud SDK
+* authenticate with GitHub 
+* build test image (for 'client' project)
+* run tests
+* run 'deploy.sh' script
+  * build production images
+  * push to Docker Hub
+  * roll out with kubectl
+
+#### Enforcing deployment of `latest` version
+
+We label our Docker builds with the `latest` tag. We've seen that kubernetes will not re-deploy a Docker image if 
+the config file is unchanged.
+
+Apart from tagging our images as `latest` we will also tag them with the git SHA (define as environment 
+variable `SHA=$(git rev-parse HEAD)`). This way we can enforce a redeployment after each build:
+
+```shell
+docker build -t roelfie/fibonacci-client:latest -t roelfie/fibonacci-client:$SHA -f ./client/Dockerfile ./client
+docker push roelfie/fibonacci-client:latest
+docker push roelfie/fibonacci-client:$SHA
+kubectl apply -f k8s
+kubectl set image client-deployment client=roelfie/fibonacci-client:$SHA
+```
+
+* Deploying the 'git SHA' version to production is good for troubleshooting. 
+* Pushing the 'latest' version to Docker Hub can be used by local deployments / dev environments.
+
+---
+Entire deployment configuration can be found here:
+* [.travis.yml](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/.travis.yml)
+* [deploy.sh](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/deploy.sh)
 
 ## 17. HTTPS Setup with Kubernetes
 
