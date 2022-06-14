@@ -1060,7 +1060,7 @@ that does the appropriate health checks).
   * push to Docker Hub
   * roll out with kubectl
 
-#### Enforcing deployment of `latest` version
+#### Step 5: Enforcing deployment of `latest` version
 
 We label our Docker builds with the `latest` tag. We've seen that kubernetes will not re-deploy a Docker image if 
 the config file is unchanged.
@@ -1079,21 +1079,131 @@ kubectl set image client-deployment client=roelfie/fibonacci-client:$SHA
 * Deploying the 'git SHA' version to production is good for troubleshooting. 
 * Pushing the 'latest' version to Docker Hub can be used by local deployments / dev environments.
 
----
-Entire deployment configuration can be found here:
+### Summary
+
+The entire deployment configuration can be found here:
 * [.travis.yml](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/.travis.yml)
 * [deploy.sh](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/deploy.sh)
 
 ## 17. HTTPS Setup with Kubernetes
 
+We will use 
+* [Let's Encrypt](https://letsencrypt.org/) for certificate issuance
+* [cert-manager](https://cert-manager.io/) for obtaining certificates from Let's Encrypt 
+  * [github](https://github.com/cert-manager/cert-manager)
+  * [installation](https://cert-manager.io/docs/installation/helm/) with helm
 
+```shell
+@cloudshell:~ (udemy-kubernetes-353220)$ helm install \
+cert-manager jetstack/cert-manager \
+--namespace cert-manager \
+--create-namespace \
+--version v1.8.0 \
+--set installCRDs=true
+
+NAME: cert-manager
+LAST DEPLOYED: Tue Jun 14 12:31:29 2022
+NAMESPACE: cert-manager
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+cert-manager v1.8.0 has been deployed successfully!
+
+In order to begin issuing certificates, you will need to set up a ClusterIssuer
+or Issuer resource (for example, by creating a 'letsencrypt-staging' issuer).
+
+More information on the different types of issuers and how to configure them
+can be found in our documentation:
+
+https://cert-manager.io/docs/configuration/
+
+For information on how to configure cert-manager to automatically provision
+Certificates for Ingress resources, take a look at the `ingress-shim`
+documentation:
+
+https://cert-manager.io/docs/usage/ingress/
+```
 
 ## 18. Local Development with Skaffold
 
+Remember how, in section 6, we used Docker Volumes to allow for instant detection of changes to the source code in a 
+running Docker container (sort of 'hot deploy').
+
+We haven't explained how to achieve this in a Kubernetes setup.
+
+### Skaffold
+
+[Skaffold](https://skaffold.dev/) is a tool for local Kubernetes development.
+
+![18-skaffold.png](./img/18-skaffold.png)
+
+Skaffold monitors the source code and updates Kubernetes when the source code changes.
+
+Skaffold can run in one of two modes: 
+* rebuild Docker image and update kubernetes
+* inject updated files into client pod
+  * pod should support this (like react app + nodemon + docker volume)
+
+### Install & configure manually
+
+Install Skaffold with Homebrew.
+
+Example of a Skaffold config file in our multi-container kubernetes repo: 
+[skaffold.yml](https://github.com/roelfie/docker-kubernetes-travis-kubernetes/blob/main/skaffold.yml).
+
+This file specifies what deployments to execute when Skaffold starts.
+
+### Start and Stop Skaffold
+
+Starting Skaffold (in your project root, where `skaffold.yml` is located):
+```shell
+skaffold dev
+```
+
+Skaffold will automatically delete all deployments as soon as Skaffold shuts down.
+
+Whenever possible, run your Docker/Kubernetes projects on localhost with Skaffold.
+It will keep your system clean and prevent dozens of dangling Docker images/containers from piling up on your machine.
+
+#### Keep persistent objects out of Skaffold!
+
+Because Skaffold removes everything on shutdown, you should NOT include persistent K8s config files (like persistent 
+volumes for postgres) in your Skaffold manifests (see `skaffold.yml` file).
+
+### VS Code / IntelliJ Plugins
+
+You can integrate Skaffold into your IDE:
+* Cloud Code [plugin for IDEA](https://cloud.google.com/code/docs/intellij/deploy-kubernetes-app)
+  * installs: `kubectl`, Skaffold, gcloud CLI, minikube 
+* Cloud Code [plugin for VS Code](https://cloud.google.com/code/docs/vscode/deploy-kubernetes-app)
+  * installs: `kubectl`, Skaffold, gcloud CLI
+  
+Both plugins let you
+* Create new GKE applications (Python, Go, Node, Java)
+* Deploy to GKE, or locally (minikube)
+* Deploy to Docker Desktop Kubernetes (?) (specify the context in Run > Edit Configurations > Develop on Kubernetes)
+* Attach debug sessions
+* View logs from running Pods
 
 
-## 19. Extras
+## 19. Cleanup Kubernetes cluster
 
+Remove Kubernetes Pods, Deployments & Services
+```shell
+kubectl delete -f <FILE | FOLDER>
+```
+
+Stop running containers
+```shell
+docker ps
+docker stop <CONTAINER_ID>
+```
+
+Remove cached images and containers
+```shell
+docker system prune
+```
 
 
 ## Docker images used in this course
@@ -1103,18 +1213,3 @@ Entire deployment configuration can be found here:
 | [hello-world](https://hub.docker.com/_/hello-world) | hello world                                            |
 | [busybox](https://hub.docker.com/_/busybox)         | complete environment for any small or embedded system  |
 | [alpine](https://hub.docker.com/_/alpine)           | Linux distribution built around musl libc and BusyBox  |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-|                                                     |                                                        |
-
-
